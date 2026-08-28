@@ -1,0 +1,267 @@
+//library functions
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <PubSubClient.h>
+#include <time.h>
+
+//sets constant values
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+#define BUTTON1 15
+#define BUTTON2 4
+#define BUTTON3 5
+#define MESSAGE_TIMEOUT 8000
+#define ANNIV_TIMEOUT 8000
+
+//WIFI and Hive cloud login
+const char* ssid = "YOUR_WIFI_SSID";
+const char* password = "YOUR_WIFI_PASSWORD";
+const char* mqtt_server = "YOUR_BROKER_URL";
+const int mqtt_port = 8883;
+const char* mqtt_user = "YOUR_MQTT_USER";
+const char* mqtt_pass = "YOUR_MQTT_PASSWORD";
+const char* topic_send = "clockpair/device2/send";
+const char* topic_receive = "clockpair/device1/send";
+
+//time settings
+const char* ntpServer = "pool.ntp.org";
+const long gmtOffset_sec = -18000;
+const int daylightOffset_sec = 3600;
+
+//anniversary constants
+const int ANNIV_YEAR  = 2024;
+const int ANNIV_MONTH = 8;
+const int ANNIV_DAY   = 8;
+
+WiFiClientSecure espClient;
+PubSubClient client(espClient);
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+//3 states the oled screen is on; clock, message, anniversary
+enum State { CLOCK_MODE, MESSAGE_MODE, ANNIV_MODE };
+State currentState = CLOCK_MODE;
+
+unsigned long messageTimer = 0;
+unsigned long anniversaryTimer = 0;
+String currentMessage = "";
+
+//shows clock and gf name
+void displayClock() {
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(0, 20);
+    display.println("Time sync...");
+    display.display();
+    return;
+  }
+
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(5, 20);
+
+  int hours = timeinfo.tm_hour % 12;
+  if (hours == 0) hours = 12;
+  int minutes = timeinfo.tm_min;
+
+  if (hours < 10) display.print("0");
+  display.print(hours);
+  display.print(":");
+  if (minutes < 10) display.print("0");
+  display.print(minutes);
+
+  display.setTextSize(2);
+  display.setCursor(80, 20);
+  String ampm = (timeinfo.tm_hour < 12) ? "AM" : "PM";
+  display.println(ampm);
+
+  display.setTextSize(1);
+  display.setCursor(20, 50);
+  display.println("lynstuh");
+  display.display();
+}
+
+//prints message received by other device
+void displayMessage(String msg) {
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 20);
+  display.println(msg);
+  display.display();
+}
+
+//displays anniversary since we started dating until now
+void displayAnniversary() {
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setCursor(0, 20);
+    display.println("Time sync...");
+    display.display();
+    return;
+  }
+
+  struct tm annivTm = {0};
+  annivTm.tm_year = ANNIV_YEAR - 1900;
+  annivTm.tm_mon  = ANNIV_MONTH - 1;
+  annivTm.tm_mday = ANNIV_DAY;
+  annivTm.tm_hour = 0;
+  annivTm.tm_min  = 0;
+  annivTm.tm_sec  = 0;
+
+  struct tm nowTm = timeinfo;
+  nowTm.tm_hour = 0;
+  nowTm.tm_min  = 0;
+  nowTm.tm_sec  = 0;
+
+  time_t annivTime = mktime(&annivTm);
+  time_t nowTime = mktime(&nowTm);
+
+  double diffSeconds = difftime(nowTime, annivTime);
+  long totalDays = (long)(diffSeconds / 86400.0);
+  if (totalDays < 0) totalDays = 0;
+
+  long years = totalDays / 365;
+  long remainderDays = totalDays % 365;
+  long weeks = remainderDays / 7;
+  long days = remainderDays % 7;
+
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+
+  display.setTextSize(1);
+  display.setCursor(15, 0);
+  display.println("Together for:");
+
+  display.setTextSize(2);
+  display.setCursor(0, 16);
+  display.print(years);
+  display.println("y");
+
+  display.setCursor(64, 16);
+  display.print(weeks);
+  display.println("w");
+
+  display.setCursor(0, 40);
+  display.print(days);
+  display.println("d");
+
+  display.setTextSize(1);
+  display.setCursor(0, 56);
+  display.print(totalDays);
+  display.println(" total days <3");
+
+  display.display();
+}
+
+//stores message as string and then starts the message timer where it resets after a bit
+void callback(char* topic, byte* payload, unsigned int length) {
+  String message = "";
+  for (int i = 0; i < length; i++) {
+    message += (char)payload[i];
+  }
+  currentMessage = message;
+  currentState = MESSAGE_MODE;
+  messageTimer = millis();
+}
+
+//reconnects to the MQTT if the connection is not working
+void reconnect() {
+  while (!client.connected()) {
+    if (client.connect("ESP32Device2", mqtt_user, mqtt_pass)) {
+      client.subscribe(topic_receive);
+    } else {
+      delay(2000);
+    }
+  }
+}
+
+//boots up the whole system
+void setup() {
+  pinMode(BUTTON1, INPUT_PULLUP);
+  pinMode(BUTTON2, INPUT_PULLUP);
+  pinMode(BUTTON3, INPUT_PULLUP);
+
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 20);
+  display.println("Connecting WiFi...");
+  display.display();
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+  }
+
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+
+  display.clearDisplay();
+  display.setCursor(0, 20);
+  display.println("WiFi OK!");
+  display.println("Syncing time...");
+  display.display();
+
+  struct tm timeinfo;
+  while (!getLocalTime(&timeinfo)) {
+    delay(500);
+  }
+
+  espClient.setInsecure();
+  client.setServer(mqtt_server, mqtt_port);
+  client.setCallback(callback);
+  reconnect();
+}
+
+//run all the functions needed continuously
+void loop() {
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+
+  if (digitalRead(BUTTON1) == LOW) {
+    client.publish(topic_send, "I love you");
+    delay(300);
+  }
+
+  if (digitalRead(BUTTON2) == LOW) {
+    client.publish(topic_send, "I miss you");
+    delay(300);
+  }
+
+  if (digitalRead(BUTTON3) == LOW) {
+    currentState = ANNIV_MODE;
+    anniversaryTimer = millis();
+    delay(300);
+  }
+
+  switch (currentState) {
+    case CLOCK_MODE:
+      displayClock();
+      break;
+    case MESSAGE_MODE:
+      displayMessage(currentMessage);
+      if (millis() - messageTimer > MESSAGE_TIMEOUT) {
+        currentState = CLOCK_MODE;
+      }
+      break;
+    case ANNIV_MODE:
+      displayAnniversary();
+      if (millis() - anniversaryTimer > ANNIV_TIMEOUT) {
+        currentState = CLOCK_MODE;
+      }
+      break;
+  }
+}

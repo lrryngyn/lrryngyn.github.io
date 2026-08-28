@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENES 100 Autonomous Vehicle — Larry Nguyen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="trace-bg"></div>
+
+<nav>
+  <a class="nav-mark" href="../index.html">Larry's Portfolio</a>
+  <ul class="nav-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="../about.html">About</a></li>
+    <li><a href="../projects.html" class="active">Projects</a></li>
+    <li><a href="../files/Larry_Nguyen_Resume.pdf" target="_blank" class="resume-link">Resume</a></li>
+    <li><a href="../contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<main>
+  <div class="wrap">
+    <a href="../projects.html" style="font-family:var(--mono); font-size:12px; color:var(--text3); text-decoration:none;">← All projects</a>
+
+    <div class="project-head" style="margin-top:24px;">
+      <span class="tag">Semester project</span>
+      <span class="tag" style="display:block; margin-top:-8px;">Sep – Dec 2023</span>
+      <h1>ENES 100 Autonomous Vehicle</h1>
+      <p>Worked in a team of six to design and build an autonomous OTV (Off-road Transport Vehicle) that navigated to a "crash site," identified which face of the anomaly was red, measured its dimensions with a Time-of-Flight sensor, dropped a positioning marker, and piloted itself past three obstacles into the destination zone — earning Most Creative OTV out of six teams.</p>
+    </div>
+
+    <div class="specs-row">
+      <div><span class="sk">TEAM</span><span class="sv">6 members</span></div>
+      <div><span class="sk">MY ROLE</span><span class="sv">Electronics lead</span></div>
+      <div><span class="sk">MCU</span><span class="sv">Arduino Mega</span></div>
+      <div><span class="sk">SENSORS</span><span class="sv">Color (TCS34725), Time-of-Flight (VL53L0X)</span></div>
+      <div><span class="sk">RESULT</span><span class="sv">Most Creative OTV</span></div>
+    </div>
+    <div class="callout">
+      <span class="k">TAKEAWAY</span>
+      Most of the difficult problems on this project ended up being hardware-related rather than purely software problems: two motors that spun at different speeds, a faulty Aruco marker, and an MCU that stopped accepting uploads two nights before grading. I learned that writing alignment and retry logic to handle imperfect hardware was just as important as getting the sensor calculations right.
+    </div>
+
+    <p id="revealHint" class="reveal-hint">Click below to see the steps and flip cards →</p>
+    <img id="mainShot" class="main-shot" src="../imgs/enes-01-labeled-render.jpg" alt="Labeled CAD render of the OTV showing sensors, actuators, and electronics placement">
+
+    <p id="gridHint" class="reveal-hint" style="display:none;">Click any photo below for the full story →</p>
+    <div class="grid9" id="grid9"></div>
+
+    <div class="writeup">
+      <div class="step">
+        <div class="step-h"><span class="n">01</span><h4>Chassis & Sensor Housing Design</h4></div>
+        <p>The chassis was designed in Fusion 360 around two upside-down servo motors, with cutouts sized directly from a GrabCAD model of the motors and cut from ⅛" birch wood on a laser cutter. From there, every sensor and actuator on the vehicle got its own custom-modeled housing — a stand and extended arm for the Time-of-Flight sensor, a housing that let the color sensor sit flush against the anomaly's face, a mount for the battery, and mounts for the three rear caster wheels. I focused on the electronics side of this, making sure each housing that wasn't meant to be glued down held its component securely, since anything loose could throw off sensor readings during a run.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">02</span><h4>Wiring the Electronics</h4></div>
+        <p>As electronics lead, I wired the components back to the Arduino Mega rather than daisy-chaining them, so each component had its own connection to the board. The battery and H-bridge shared a 12 V power rail, while the sensors, servos, and Wi-Fi module used the lower-voltage supply. We went with a Mega over an Uno for the extra pins — a decision that came back to bite us later.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">03</span><h4>Motor Control & Pin Assignment</h4></div>
+        <p>The two drive motors were wired through a dual H-bridge (L298N), which let each wheel spin independently in either direction and allowed the OTV to turn in place. I mapped out and soldered every connection on the Mega: motor speed and direction pins, I²C lines for the color sensor and Time-of-Flight sensor, the Wi-Fi module's TX/RX, and signal lines for three separate servos. A lot of the Mega's extra pins ended up unused — in hindsight, everything would have fit on an Uno.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">04</span><h4>Mission Logic</h4></div>
+        <p>The mission ran as a state machine. The OTV drove forward until the color sensor's Y-coordinate stopped changing, indicating that it had gently bumped into the anomaly. It then backed off and checked whether the face was red; if not, it circled to the next face and repeated the process.</p>
+        <p>Once the red face was found, the Time-of-Flight sensor measured the block's length by tracking the OTV's start and end coordinates as it drove alongside the face. The OTV then rotated the sensor upward in fixed increments using a positional servo until it lost the block. We used the Pythagorean theorem and the known sensor offset to calculate the height.</p>
+        <p>After transmitting the measurements over Wi-Fi, the OTV dropped its position marker and navigated past three obstacles into the destination zone.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">05</span><h4>Turning and Alignment Code</h4></div>
+        <p>Getting the OTV to actually point where the state machine wanted it to point took its own layer of code. I wrote alignment routines that nudged the vehicle toward a target heading in small increments, checked the vision system's angle reading after each adjustment, and corrected for overshoot when it turned too far. This was necessary because the two drive motors didn't spin at identical speeds even at equal power — a hardware inconsistency that made one-shot turning unreliable.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">06</span><h4>Propulsion Calculations</h4></div>
+        <p>Before choosing a motor, we calculated the torque needed for two scenarios: climbing over the course's log obstacle and driving around it. Climbing would have required 0.264 N·m per wheel at a 45° incline, which was well above what our motors could deliver. We therefore routed under the limbo bar instead, which required about 0.149 N·m per wheel at our target speed of 0.08 m/s.</p>
+        <p>Manufacturer specifications suggested the motors could run at around 126 rad/s, but the OTV barely moved at that speed on the actual chassis. We kept increasing the speed until we found a value the vehicle could reliably operate at — 314.96 rad/min. At that operating point, the actual motor torque was about one-third of our original calculated requirement, showing the expected tradeoff between torque and speed in a DC motor.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">07</span><h4>The Night Before MS7</h4></div>
+        <p>Two nights before our final milestone, the Arduino Mega stopped accepting new code. It still ran whatever program was already flashed to it, but refused to accept new uploads. We'd already gotten the OTV into the destination zone successfully during testing, but had no way to demonstrate it with the actual mission code during grading.</p>
+        <p>On top of that, an Aruco marker was intermittently dropping out of the vision system's tracking. We spent two weeks treating it as a code issue before realizing the marker itself was faulty. Navigation ended up being the hardest part of the system to make reliable, right up to the deadline.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">08</span><h4>Most Creative OTV</h4></div>
+        <p>The award came from how the OTV got past a set of obstacle gaps that were too narrow for a straight run. It drifted at an angle and ended up riding with two wheels on the wall and two on the ground, coasting past the gap before dropping back down and continuing to the finish line.</p>
+        <p>It was a complete accident — nobody planned it, and nothing in the code or design called for it. We just got lucky with how the navigation error lined up. But it's exactly the kind of thing that got us noticed among the six competing teams.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<button class="flip-close" id="flipClose">✕ CLOSE</button>
+<div class="flip-overlay" id="flipOverlay">
+  <div class="flip-card" id="flipCard">
+    <div class="flip-inner" id="flipInner">
+      <div class="flip-face flip-front">
+        <span class="flip-tag" id="flipTagFront">01</span>
+        <img id="flipImg" src="" alt="">
+        <span class="flip-instruction">CLICK TO SEE WHAT I DID →</span>
+      </div>
+      <div class="flip-face flip-back">
+        <span class="n" id="flipTagBack">STEP 01</span>
+        <h4 id="flipTitle"></h4>
+        <p id="flipDesc"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>© 2026 Larry Nguyen</span>
+  <span>University of Maryland — Electrical Engineering</span>
+</footer>
+
+<script src="../js/main.js"></script>
+<script>
+  const enesSteps = [
+    {n:'01', img:'../imgs/enes-02-chassis-cad.png', alt:'Fusion 360 chassis base CAD drawing with dimensions', title:'Chassis & Sensor Housing Design',
+     desc:"The chassis was designed in Fusion 360 around two upside-down servo motors, with cutouts sized directly from a GrabCAD model of the motors and cut from \u215b\" birch wood on a laser cutter. From there, every sensor and actuator on the vehicle got its own custom-modeled housing \u2014 a stand and extended arm for the Time-of-Flight sensor, a housing that let the color sensor sit flush against the anomaly's face, a mount for the battery, and mounts for the three rear caster wheels. I focused on the electronics side of this, making sure each housing that wasn't meant to be glued down held its component securely, since anything loose could throw off sensor readings during a run."},
+    {n:'02', img:'../imgs/enes-03-schematic.png', alt:'Final electronics wiring schematic', title:'Wiring the Electronics',
+     desc:"As electronics lead, I wired the components back to the Arduino Mega rather than daisy-chaining them, so each component had its own connection to the board. The battery and H-bridge shared a 12 V power rail, while the sensors, servos, and Wi-Fi module used the lower-voltage supply. We went with a Mega over an Uno for the extra pins \u2014 a decision that came back to bite us later."},
+    {n:'03', img:'../imgs/enes-04-pin-diagram.jpg', alt:'Arduino Mega pin assignment diagram', title:'Motor Control & Pin Assignment',
+     desc:"The two drive motors were wired through a dual H-bridge (L298N), which let each wheel spin independently in either direction and allowed the OTV to turn in place. I mapped out and soldered every connection on the Mega: motor speed and direction pins, I\u00b2C lines for the color sensor and Time-of-Flight sensor, the Wi-Fi module's TX/RX, and signal lines for three separate servos. A lot of the Mega's extra pins ended up unused \u2014 in hindsight, everything would have fit on an Uno."},
+    {n:'04', img:'../imgs/enes-05-flowchart.jpg', alt:'Mission logic flowchart from sensing to end zone', title:'Mission Logic',
+     desc:"The mission ran as a state machine. The OTV drove forward until the color sensor's Y-coordinate stopped changing, indicating that it had gently bumped into the anomaly. It then backed off and checked whether the face was red; if not, it circled to the next face and repeated the process. Once the red face was found, the Time-of-Flight sensor measured the block's length by tracking the OTV's start and end coordinates as it drove alongside the face. The OTV then rotated the sensor upward in fixed increments using a positional servo until it lost the block. We used the Pythagorean theorem and the known sensor offset to calculate the height. After transmitting the measurements over Wi-Fi, the OTV dropped its position marker and navigated past three obstacles into the destination zone."},
+    {n:'05', img:'../imgs/enes-06-code.png', alt:'Arduino alignment function code', title:'Turning and Alignment Code',
+     desc:"Getting the OTV to actually point where the state machine wanted it to point took its own layer of code. I wrote alignment routines that nudged the vehicle toward a target heading in small increments, checked the vision system's angle reading after each adjustment, and corrected for overshoot when it turned too far. This was necessary because the two drive motors didn't spin at identical speeds even at equal power \u2014 a hardware inconsistency that made one-shot turning unreliable."},
+    {n:'06', img:'../imgs/enes-07-torque-graph.png', alt:'Preliminary motor speed vs torque calculation graph', title:'Propulsion Calculations',
+     desc:"Before choosing a motor, we calculated the torque needed for two scenarios: climbing over the course's log obstacle and driving around it. Climbing would have required 0.264 N\u00b7m per wheel at a 45\u00b0 incline, which was well above what our motors could deliver. We therefore routed under the limbo bar instead, which required about 0.149 N\u00b7m per wheel at our target speed of 0.08 m/s. Manufacturer specifications suggested the motors could run at around 126 rad/s, but the OTV barely moved at that speed on the actual chassis. We kept increasing the speed until we found a value the vehicle could reliably operate at \u2014 314.96 rad/min. At that operating point, the actual motor torque was about one-third of our original calculated requirement, showing the expected tradeoff between torque and speed in a DC motor."},
+    {n:'07', img:'../imgs/enes-08-mission-photo.jpg', alt:'OTV approaching the red anomaly block during a test run', title:'The Night Before MS7',
+     desc:"Two nights before our final milestone, the Arduino Mega stopped accepting new code. It still ran whatever program was already flashed to it, but refused to accept new uploads. We'd already gotten the OTV into the destination zone successfully during testing, but had no way to demonstrate it with the actual mission code during grading. On top of that, an Aruco marker was intermittently dropping out of the vision system's tracking. We spent two weeks treating it as a code issue before realizing the marker itself was faulty. Navigation ended up being the hardest part of the system to make reliable, right up to the deadline.", zoomable:true},
+    {n:'08', img:'../imgs/enes-01-labeled-render.jpg', alt:'Fully labeled CAD render of the finished OTV', title:'Most Creative OTV',
+     desc:"The award came from how the OTV got past a set of obstacle gaps that were too narrow for a straight run. It drifted at an angle and ended up riding with two wheels on the wall and two on the ground, coasting past the gap before dropping back down and continuing to the finish line. It was a complete accident \u2014 nobody planned it, and nothing in the code or design called for it. We just got lucky with how the navigation error lined up. But it's exactly the kind of thing that got us noticed among the six competing teams."},
+  ];
+  initFlipGallery(enesSteps);
+</script>
+</body>
+</html>

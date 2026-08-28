@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Long-Range Wireless Messaging Device — Larry Nguyen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="trace-bg"></div>
+
+<nav>
+  <a class="nav-mark" href="../index.html">Larry's Portfolio</a>
+  <ul class="nav-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="../about.html">About</a></li>
+    <li><a href="../projects.html" class="active">Projects</a></li>
+    <li><a href="../files/Larry_Nguyen_Resume.pdf" target="_blank" class="resume-link">Resume</a></li>
+    <li><a href="../contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<main>
+  <div class="wrap">
+    <a href="../projects.html" style="font-family:var(--mono); font-size:12px; color:var(--text3); text-decoration:none;">← All projects</a>
+
+    <div class="project-head" style="margin-top:24px;">
+      <span class="tag">Personal project</span>
+      <span class="tag" style="display:block; margin-top:-8px;">Jul – Aug 2026</span>
+      <h1>Long-Range Wireless Messaging Device</h1>
+      <p>A pair of ESP32-based devices that send short preset messages to each other over WiFi and a cloud MQTT broker, each with an OLED display and physical buttons to trigger a message on the other unit — used long-distance between the US and Canada.</p>
+    </div>
+
+    <div class="specs-row">
+      <div><span class="sk">MCU</span><span class="sv">ESP32 (WiFi + BT SoC)</span></div>
+      <div><span class="sk">DISPLAY</span><span class="sv">I2C OLED</span></div>
+      <div><span class="sk">LINK</span><span class="sv">WiFi → cloud MQTT broker</span></div>
+      <div><span class="sk">RANGE</span><span class="sv">US ↔ Canada</span></div>
+      <div><span class="sk">UNITS</span><span class="sv">2 (paired)</span></div>
+    </div>
+    <div class="callout">
+      <span class="k">TAKEAWAY</span>
+      Isolating the display and networking as separate steps — get the OLED working standalone before adding WiFi — made the eventual wiring issue much faster to diagnose, since I already knew the rest of the circuit was sound.
+    </div>
+
+    <p id="revealHint" class="reveal-hint">Click below to see the steps and flip cards →</p>
+    <img id="mainShot" class="main-shot" src="../imgs/wl-04-clock-buttons.png" alt="Wireless messaging device with buttons wired, showing live clock">
+
+    <p id="gridHint" class="reveal-hint" style="display:none;">Click any photo below for the full story →</p>
+    <div class="grid9" id="grid9"></div>
+    <p id="codeLink" style="display:none; margin:0 0 56px;"><a href="../files/wireless-messaging-device.txt" target="_blank" style="font-family:var(--mono); font-size:13px; color:var(--red); text-decoration:none; border-bottom:1px solid var(--red-dim);">View the full sketch as text (.txt) →</a></p>
+
+    <div class="writeup">
+      <div class="step">
+        <div class="step-h"><span class="n">01</span><h4>Choosing the ESP32</h4></div>
+        <p>I researched microcontrollers with built-in WiFi and chose the ESP32 because it has WiFi and Bluetooth onboard without needing a separate networking module. I added the libraries needed to connect the ESP32 to the OLED and WiFi.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">02</span><h4>Testing the Display First</h4></div>
+        <p>Before building out the full circuit, I connected just the ESP32 and OLED to make sure the screen powered on and displayed correctly. I tested the display separately first so I could rule it out before adding the wireless connection.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">03</span><h4>Connecting the Two Devices</h4></div>
+        <p>Each device connects to WiFi independently and communicates through a cloud-hosted MQTT broker. Both units publish messages to and subscribe to the broker, which allows them to communicate over the internet. Since my device is in the US and the second unit is in Canada, we couldn't rely on a direct local connection.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">04</span><h4>Wiring the OLED</h4></div>
+        <p>I ran into an issue where the OLED wasn't receiving power. I spent some time researching the correct wiring for this specific display and eventually found a configuration that powered it reliably.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">05</span><h4>Button Logic</h4></div>
+        <p>Each unit has physical buttons that trigger a preset message on the other device's display. Button 1 sends "I miss you," and Button 2 sends "I love you." Messages stay on the screen for 8 seconds and then automatically clear.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">06</span><h4>Elapsed-Time Counter</h4></div>
+        <p>The second unit has a third button reserved for a custom feature: a persistent counter showing the elapsed time since a specific date.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">07</span><h4>Libraries & Code</h4></div>
+        <p>I used Adafruit_GFX and Adafruit_SSD1306 to drive the OLED display, WiFi and WiFiClientSecure to connect the ESP32 to the network and open a secure connection to the broker, PubSubClient to handle the MQTT publish/subscribe messaging between the two devices, and time.h to sync and format the clock over NTP. The callback function fires whenever a message arrives on the subscribed topic, storing it and switching the display into message mode; the main loop checks the three buttons each cycle, publishes the matching message when pressed, and calls whichever display function matches the current state.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<button class="flip-close" id="flipClose">✕ CLOSE</button>
+<div class="flip-overlay" id="flipOverlay">
+  <div class="flip-card" id="flipCard">
+    <div class="flip-inner" id="flipInner">
+      <div class="flip-face flip-front">
+        <span class="flip-tag" id="flipTagFront">01</span>
+        <img id="flipImg" src="" alt="">
+        <span class="flip-instruction">CLICK TO SEE WHAT I DID →</span>
+      </div>
+      <div class="flip-face flip-back">
+        <span class="n" id="flipTagBack">STEP 01</span>
+        <h4 id="flipTitle"></h4>
+        <p id="flipDesc"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>© 2026 Larry Nguyen</span>
+  <span>University of Maryland — Electrical Engineering</span>
+</footer>
+
+<script src="../js/main.js"></script>
+<script>
+  const wirelessSteps = [
+    {n:'01', img:'../imgs/wl-00-esp32-board.png', alt:'ESP32 development board', title:'Choosing the ESP32',
+     desc:"I researched microcontrollers with built-in WiFi and chose the ESP32 because it has WiFi and Bluetooth onboard without needing a separate networking module. I added the libraries needed to connect the ESP32 to the OLED and WiFi."},
+    {n:'02', img:'../imgs/wl-01-breadboard.png', alt:'ESP32 and OLED wired on breadboard', title:'Testing the Display First',
+     desc:"Before building out the full circuit, I connected just the ESP32 and OLED to make sure the screen powered on and displayed correctly. I tested the display separately first so I could rule it out before adding the wireless connection."},
+    {n:'03', img:'../imgs/wl-02-wired-running.png', alt:'Device running with buttons wired and clock displayed', title:'Connecting the Two Devices',
+     desc:"Each device connects to WiFi independently and communicates through a cloud-hosted MQTT broker. Both units publish messages to and subscribe to the broker, which allows them to communicate over the internet. Since my device is in the US and the second unit is in Canada, we couldn't rely on a direct local connection."},
+    {n:'04', img:'../imgs/wl-03-oled-close.png', alt:'Close-up of OLED showing time and WiFi OK status', title:'Wiring the OLED',
+     desc:"I ran into an issue where the OLED wasn't receiving power. I spent some time researching the correct wiring for this specific display and eventually found a configuration that powered it reliably."},
+    {n:'05', img:'../imgs/wl-05-clock.png', alt:'Paired device showing idle clock', title:'Button Logic',
+     desc:"Each unit has physical buttons that trigger a preset message on the other device's display. Button 1 sends \"I miss you,\" and Button 2 sends \"I love you.\" Messages stay on the screen for 8 seconds and then automatically clear.", zoomable:true},
+    {n:'06', img:'../imgs/wl-06-anniversary.png', alt:'Anniversary counter display showing elapsed time', title:'Elapsed-Time Counter',
+     desc:"The second unit has a third button reserved for a custom feature: a persistent counter showing the elapsed time since a specific date.", zoomable:true},
+    {n:'07', img:'../imgs/wl-07-code.png', alt:'Redacted Arduino code showing MQTT setup, message callback, and button logic', title:'Libraries & Code', zoomable:true,
+     desc:"I used Adafruit_GFX and Adafruit_SSD1306 to drive the OLED display, WiFi and WiFiClientSecure to connect the ESP32 to the network and open a secure connection to the broker, PubSubClient to handle the MQTT publish/subscribe messaging between the two devices, and time.h to sync and format the clock over NTP. The callback function fires whenever a message arrives on the subscribed topic, storing it and switching the display into message mode; the main loop checks the three buttons each cycle, publishes the matching message when pressed, and calls whichever display function matches the current state."},
+  ];
+  initFlipGallery(wirelessSteps);
+</script>
+</body>
+</html>

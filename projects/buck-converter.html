@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DC–DC Buck Converter — Larry Nguyen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="trace-bg"></div>
+
+<nav>
+  <a class="nav-mark" href="../index.html">Larry's Portfolio</a>
+  <ul class="nav-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="../about.html">About</a></li>
+    <li><a href="../projects.html" class="active">Projects</a></li>
+    <li><a href="../files/Larry_Nguyen_Resume.pdf" target="_blank" class="resume-link">Resume</a></li>
+    <li><a href="../contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<main>
+  <div class="wrap">
+    <a href="../projects.html" style="font-family:var(--mono); font-size:12px; color:var(--text3); text-decoration:none;">← All projects</a>
+
+    <div class="project-head" style="margin-top:24px;">
+      <span class="tag">Personal collaborative project</span>
+      <span class="tag" style="display:block; margin-top:-8px;">Jun – Aug 2026</span>
+      <h1>DC–DC Buck Converter with PID Control</h1>
+      <p>A 12V-to-5V, 2A synchronous buck converter with PID-controlled output regulation, plus a secondary voltage divider stepping the output down to 3.3V for MCU compatibility.</p>
+    </div>
+
+    <div class="specs-row">
+      <div><span class="sk">INPUT</span><span class="sv">12V</span></div>
+      <div><span class="sk">OUTPUT</span><span class="sv">5V @ 2A</span></div>
+      <div><span class="sk">SWITCHING FREQ</span><span class="sv">100 kHz</span></div>
+      <div><span class="sk">MCU RAIL</span><span class="sv">3.3V (via divider)</span></div>
+      <div><span class="sk">FAB</span><span class="sv">JLCPCB</span></div>
+    </div>
+    <div class="callout">
+      <span class="k">TAKEAWAY</span>
+      A single footprint mismatch — one part not matching its designed pad size — traced all the way through to a measurable 90mV deviation at the output. Debugging it meant connecting the PCB layout decisions back to the actual electrical result on the scope.
+    </div>
+
+    <p id="revealHint" class="reveal-hint">Click below to see the steps and flip cards →</p>
+    <img id="mainShot" class="main-shot" src="../imgs/dc-main.png" alt="Buck converter bare board">
+
+    <p id="gridHint" class="reveal-hint" style="display:none;">Click any photo below for the full story →</p>
+    <div class="grid9" id="grid9"></div>
+
+    <div class="writeup">
+      <div class="step">
+        <div class="step-h"><span class="n">01</span><h4>Calculations</h4></div>
+        <p>We started by defining our target specs: 12V input, 5V output, 2A output current, and a 100 kHz switching frequency based on research into similar buck converter designs. I calculated the duty cycle and then sized the inductor and output capacitor to meet our target ripple. I also determined the required MOSFET voltage and current ratings with a safety margin, selected a diode rated above our operating voltage and current, and chose a non-inverting gate driver IC (LTC1693-1) to drive the MOSFET from the PWM signal.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">02</span><h4>LTspice</h4></div>
+        <p>Before starting the PCB layout, I simulated the circuit in LTspice to verify that it stepped 12V down to 5V under the target load. I used a pulse voltage source to model the PWM signal from the MCU and checked the high-side MOSFET's switching behavior. The simulation also confirmed why we needed a dedicated gate driver rather than driving the MOSFET directly.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">03</span><h4>KiCad schematic</h4></div>
+        <p>Component selection followed directly from our calculations. For example, once we determined we needed a 10 µF capacitor, we selected a standard ceramic capacitor and used its default footprint. We selected most components using the same process.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">04</span><h4>KiCad PCB layout</h4></div>
+        <p>We calculated trace widths based on the current each path would carry. The traces carrying the 2A output current were made wider to reduce heating, while lower-current traces were kept thinner. We used a full ground plane instead of routing individual ground traces to simplify the layout and reduce ground impedance. We also kept the switching components close together to minimize the loop area around the high-frequency switching node.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">05</span><h4>Fabrication and assembly</h4></div>
+        <p>The bare boards were fabricated through JLCPCB. During assembly, we noticed that the white solder mask made the brown flux residue from hand-soldering much more noticeable. It wasn't a functional issue, but we cleaned the boards with isopropyl alcohol and a Q-tip after soldering to remove the residue.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">06</span><h4>Final wiring</h4></div>
+        <p>With the boards soldered and cleaned, we wired the feedback resistors to the PCB using jumper wires because their physical size didn't match the footprints we designed. The rest of the circuit connected directly through the PCB, and we set up the input supply and probe points for bench testing.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">07</span><h4>MCU wiring with voltage divider</h4></div>
+        <p>I soldered header pins onto the PCB to connect the MCU to the board. The MCU's PWM output fed into the PCB, while the buck converter's output was sent through a voltage divider back to the MCU to close the control loop. My teammate handled the direct MCU wiring while I focused on the PCB-side connections.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">08</span><h4>Oscilloscope reading</h4></div>
+        <p>When we first probed the output, the voltage was lower than expected. Based on the LTspice simulation, we knew the output would initially oscillate before settling, so we allowed the circuit to stabilize. It settled at 3.21V compared with our 3.3V target. We traced the difference to the feedback resistor being mounted off-board rather than directly on the PCB. The additional wire length and parasitics affected the feedback signal and contributed to the lower output voltage.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<button class="flip-close" id="flipClose">✕ CLOSE</button>
+<div class="flip-overlay" id="flipOverlay">
+  <div class="flip-card" id="flipCard">
+    <div class="flip-inner" id="flipInner">
+      <div class="flip-face flip-front">
+        <span class="flip-tag" id="flipTagFront">01</span>
+        <img id="flipImg" src="" alt="">
+        <span class="flip-instruction">CLICK TO SEE WHAT I DID →</span>
+      </div>
+      <div class="flip-face flip-back">
+        <span class="n" id="flipTagBack">STEP 01</span>
+        <h4 id="flipTitle"></h4>
+        <p id="flipDesc"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>© 2026 Larry Nguyen</span>
+  <span>University of Maryland — Electrical Engineering</span>
+</footer>
+
+<script src="../js/main.js"></script>
+<script>
+  const buckSteps = [
+    {n:'01', img:'../imgs/01-calculations.png', alt:'Hand calculations for the buck converter', title:'Calculations', instrTop:true,
+     desc:"We started by defining our target specs: 12V input, 5V output, 2A output current, and a 100 kHz switching frequency based on research into similar buck converter designs. I calculated the duty cycle and then sized the inductor and output capacitor to meet our target ripple. I also determined the required MOSFET voltage and current ratings with a safety margin, selected a diode rated above our operating voltage and current, and chose a non-inverting gate driver IC (LTC1693-1) to drive the MOSFET from the PWM signal."},
+    {n:'02', img:'../imgs/02-ltspice.png', alt:'LTspice simulation', title:'LTspice',
+     desc:"Before starting the PCB layout, I simulated the circuit in LTspice to verify that it stepped 12V down to 5V under the target load. I used a pulse voltage source to model the PWM signal from the MCU and checked the high-side MOSFET's switching behavior. The simulation also confirmed why we needed a dedicated gate driver rather than driving the MOSFET directly."},
+    {n:'03', img:'../imgs/03-schematic.png', alt:'KiCad schematic', title:'KiCad schematic',
+     desc:"Component selection followed directly from our calculations. For example, once we determined we needed a 10 µF capacitor, we selected a standard ceramic capacitor and used its default footprint. We selected most components using the same process."},
+    {n:'04', img:'../imgs/04-pcb-layout.png', alt:'KiCad PCB layout', title:'KiCad PCB layout',
+     desc:"We calculated trace widths based on the current each path would carry. The traces carrying the 2A output current were made wider to reduce heating, while lower-current traces were kept thinner. We used a full ground plane instead of routing individual ground traces to simplify the layout and reduce ground impedance. We also kept the switching components close together to minimize the loop area around the high-frequency switching node."},
+    {n:'05', img:'../imgs/05-unsoldered.png', alt:'Fabricated bare board', title:'Fabrication',
+     desc:"The bare boards were fabricated through JLCPCB. During assembly, we noticed that the white solder mask made the brown flux residue from hand-soldering much more noticeable. It wasn't a functional issue, but we cleaned the boards with isopropyl alcohol and a Q-tip after soldering to remove the residue."},
+    {n:'06', img:'../imgs/06-soldered.png', alt:'Assembled board', title:'Assembly',
+     desc:"After fabrication, components were hand-soldered onto the boards following our schematic and layout, then cleaned with isopropyl alcohol and a Q-tip to remove flux residue and restore a clean finish."},
+    {n:'07', img:'../imgs/07-final-wiring.png', alt:'Final wiring on bench', title:'Final wiring',
+     desc:"With the boards soldered and cleaned, we wired the feedback resistors to the PCB using jumper wires because their physical size didn't match the footprints we designed. The rest of the circuit connected directly through the PCB, and we set up the input supply and probe points for bench testing."},
+    {n:'08', img:'../imgs/08-mcu-divider.png', alt:'MCU wiring with voltage divider', title:'MCU wiring with voltage divider',
+     desc:"I soldered header pins onto the PCB to connect the MCU to the board. The MCU's PWM output fed into the PCB, while the buck converter's output was sent through a voltage divider back to the MCU to close the control loop. My teammate handled the direct MCU wiring while I focused on the PCB-side connections."},
+    {n:'09', img:'../imgs/09-oscilloscope.png', alt:'Oscilloscope reading', title:'Oscilloscope reading',
+     desc:"When we first probed the output, the voltage was lower than expected. Based on the LTspice simulation, we knew the output would initially oscillate before settling, so we allowed the circuit to stabilize. It settled at 3.21V compared with our 3.3V target. We traced the difference to the feedback resistor being mounted off-board rather than directly on the PCB. The additional wire length and parasitics affected the feedback signal and contributed to the lower output voltage."},
+  ];
+  initFlipGallery(buckSteps);
+</script>
+</body>
+</html>

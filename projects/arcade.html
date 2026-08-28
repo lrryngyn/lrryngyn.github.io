@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arcade Machine Restoration — Larry Nguyen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="trace-bg"></div>
+
+<nav>
+  <a class="nav-mark" href="../index.html">Larry's Portfolio</a>
+  <ul class="nav-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="../about.html">About</a></li>
+    <li><a href="../projects.html" class="active">Projects</a></li>
+    <li><a href="../files/Larry_Nguyen_Resume.pdf" target="_blank" class="resume-link">Resume</a></li>
+    <li><a href="../contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<main>
+  <div class="wrap">
+    <a href="../projects.html" style="font-family:var(--mono); font-size:12px; color:var(--text3); text-decoration:none;">← All projects</a>
+
+    <div class="project-head" style="margin-top:24px;">
+      <span class="tag">Personal project</span>
+      <span class="tag" style="display:block; margin-top:-8px;">Dec 2025</span>
+      <h1>Arcade Machine Restoration & Modernization</h1>
+      <p>The cabinet's stock hardware only ran the 13 games it shipped with. I gutted the original control board and display controller, wired in a Raspberry Pi loaded with over 60,000 emulated games, replaced every button and joystick, and mounted the Pi inside the cabinet since the original wiring wasn't long enough to reach it hanging loose.</p>
+    </div>
+
+    <div class="specs-row">
+      <div><span class="sk">GAME LIBRARY</span><span class="sv">13 → 60,000+ (Batocera/RetroBat)</span></div>
+      <div><span class="sk">NEW BRAIN</span><span class="sv">Raspberry Pi (replaced stock MCU)</span></div>
+      <div><span class="sk">DISPLAY</span><span class="sv">HDMI, via controller board</span></div>
+      <div><span class="sk">CONTROLS</span><span class="sv">All buttons & joysticks replaced</span></div>
+      <div><span class="sk">STATUS</span><span class="sv">Complete & running</span></div>
+    </div>
+
+    <div class="demo-video-wrap">
+      <video class="demo-video" controls playsinline poster="../imgs/ar-demo-poster.jpg">
+        <source src="../imgs/ar-demo.mp4" type="video/mp4">
+        Your browser doesn't support embedded video — <a href="../imgs/ar-demo.mp4">download the demo instead</a>.
+      </video>
+      <p class="demo-video-caption">Booting into the game library after the rebuild</p>
+    </div>
+
+    <p id="revealHint" class="reveal-hint">Click below to see the steps and flip cards →</p>
+    <img id="mainShot" class="main-shot" src="../imgs/ar-thumb.jpg" alt="Arcade cabinet control panel with new LED buttons, close-up angled view">
+
+    <p id="gridHint" class="reveal-hint" style="display:none;">Click any photo below for the full story →</p>
+    <div class="grid9" id="grid9"></div>
+
+    <div class="writeup">
+      <div class="step">
+        <div class="step-h"><span class="n">01</span><h4>The Original Controls</h4></div>
+        <p>The cabinet came with a standard set of arcade buttons and joysticks wired into the stock control board. They worked, but were limited to the 13-game board that came with the cabinet. This was the starting point before I began rewiring the controls.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">02</span><h4>Teardown</h4></div>
+        <p>I removed every original button and joystick from the control panel, leaving the existing mounting holes. The stock hardware used old-style, non-illuminated buttons wired directly to the cabinet's proprietary board, so none of it was reusable with the new setup.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">03</span><h4>Installing the New Controls</h4></div>
+        <p>I wired new LED-illuminated buttons and joysticks to a pair of USB encoder boards. This lets the Raspberry Pi read the button presses as standard USB inputs instead of using the proprietary protocol from the original board.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">04</span><h4>Wiring the Display</h4></div>
+        <p>The original display was connected to the cabinet's stock video board, which couldn't accept input from the Raspberry Pi. I connected the Pi to the monitor's controller board over HDMI, replacing the original video signal path so the Pi could drive the screen directly.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">05</span><h4>Mounting the Raspberry Pi</h4></div>
+        <p>The Pi was originally hanging loose inside the cabinet because the existing wiring wasn't long enough to route it somewhere else. I mounted it to the side panel and cleaned up the internal wiring and power bricks so everything had a fixed, secure position instead of dangling.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">06</span><h4>Powered On</h4></div>
+        <p>With the new controls, display wiring, and Pi mount in place, the cabinet now boots into a retro-emulation frontend with access to over 60,000 games — a long way from the 13 games it originally shipped with.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<button class="flip-close" id="flipClose">✕ CLOSE</button>
+<div class="flip-overlay" id="flipOverlay">
+  <div class="flip-card" id="flipCard">
+    <div class="flip-inner" id="flipInner">
+      <div class="flip-face flip-front">
+        <span class="flip-tag" id="flipTagFront">01</span>
+        <img id="flipImg" src="" alt="">
+        <span class="flip-instruction">CLICK TO SEE WHAT I DID →</span>
+      </div>
+      <div class="flip-face flip-back">
+        <span class="n" id="flipTagBack">STEP 01</span>
+        <h4 id="flipTitle"></h4>
+        <p id="flipDesc"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>© 2026 Larry Nguyen</span>
+  <span>University of Maryland — Electrical Engineering</span>
+</footer>
+
+<script src="../js/main.js"></script>
+<script>
+  const arcadeSteps = [
+    {n:'01', img:'../imgs/ar-01-original-controls.jpg', alt:'Original arcade control panel with stock buttons and joysticks wired to the factory board', title:'The Original Controls',
+     desc:"The cabinet came with a standard set of arcade buttons and joysticks wired into the stock control board. They worked, but were limited to the 13-game board that came with the cabinet. This was the starting point before I began rewiring the controls."},
+    {n:'02', img:'../imgs/ar-02-teardown.jpg', alt:'Control panel with old buttons removed, showing empty mounting holes and a pile of removed buttons', title:'Teardown',
+     desc:"I removed every original button and joystick from the control panel, leaving the existing mounting holes. The stock hardware used old-style, non-illuminated buttons wired directly to the cabinet's proprietary board, so none of it was reusable with the new setup."},
+    {n:'03', img:'../imgs/ar-03-new-buttons.jpg', alt:'New LED-illuminated buttons and joystick wired to USB encoder boards', title:'Installing the New Controls', zoomable:true,
+     desc:"I wired new LED-illuminated buttons and joysticks to a pair of USB encoder boards. This lets the Raspberry Pi read the button presses as standard USB inputs instead of using the proprietary protocol from the original board."},
+    {n:'04', img:'../imgs/ar-04-display-wiring.jpg', alt:'Monitor controller board with HDMI and power wiring connected', title:'Wiring the Display',
+     desc:"The original display was connected to the cabinet's stock video board, which couldn't accept input from the Raspberry Pi. I connected the Pi to the monitor's controller board over HDMI, replacing the original video signal path so the Pi could drive the screen directly."},
+    {n:'05', img:'../imgs/ar-05-internal-wiring.jpg', alt:'Internal cabinet wiring with power bricks and cables bundled and routed', title:'Mounting the Raspberry Pi',
+     desc:"The Pi was originally hanging loose inside the cabinet because the existing wiring wasn't long enough to route it somewhere else. I mounted it to the side panel and cleaned up the internal wiring and power bricks so everything had a fixed, secure position instead of dangling."},
+    {n:'06', img:'../imgs/ar-06-final-result.jpg', alt:'Restored arcade cabinet powered on and running RetroBat emulation frontend', title:'Powered On', zoomable:true,
+     desc:"With the new controls, display wiring, and Pi mount in place, the cabinet now boots into a retro-emulation frontend with access to over 60,000 games \u2014 a long way from the 13 games it originally shipped with."},
+  ];
+  initFlipGallery(arcadeSteps);
+</script>
+</body>
+</html>

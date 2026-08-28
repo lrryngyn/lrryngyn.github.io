@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>0–15V Bench Power Supply — Larry Nguyen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="trace-bg"></div>
+
+<nav>
+  <a class="nav-mark" href="../index.html">Larry's Portfolio</a>
+  <ul class="nav-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="../about.html">About</a></li>
+    <li><a href="../projects.html" class="active">Projects</a></li>
+    <li><a href="../files/Larry_Nguyen_Resume.pdf" target="_blank" class="resume-link">Resume</a></li>
+    <li><a href="../contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<main>
+  <div class="wrap">
+    <a href="../projects.html" style="font-family:var(--mono); font-size:12px; color:var(--text3); text-decoration:none;">← All projects</a>
+
+    <div class="project-head" style="margin-top:24px;">
+      <span class="tag">Personal project — in progress</span>
+      <span class="tag" style="display:block; margin-top:-8px;">Aug 2026 – Present</span>
+      <h1>0–15V Adjustable Linear Bench Power Supply</h1>
+      <p>A linear regulated power supply designed from calculations through LTspice simulation, KiCad schematic and PCB layout, and a custom enclosure — boards are soldered and I'm waiting on the last parts to arrive before final bring-up and testing.</p>
+    </div>
+
+    <div class="specs-row">
+      <div><span class="sk">OUTPUT</span><span class="sv">0–15V, up to 1.2A</span></div>
+      <div><span class="sk">RIPPLE TARGET</span><span class="sv">&lt; 50mV</span></div>
+      <div><span class="sk">CURRENT LIMITING</span><span class="sv">0.1–1A</span></div>
+      <div><span class="sk">STAGES</span><span class="sv">Rectify → Filter → Regulate → Protect</span></div>
+      <div><span class="sk">STATUS</span><span class="sv">Soldered, awaiting parts for bring-up</span></div>
+    </div>
+    <div class="callout">
+      <span class="k">STATUS</span>
+      The board is fully soldered and the enclosure is built. I'm waiting on a couple of remaining parts before I can power it up and validate against these calculations — this page will get real test data and photos once that's done.
+    </div>
+
+    <p id="revealHint" class="reveal-hint">Click below to see the steps and flip cards →</p>
+    <img id="mainShot" class="main-shot" src="../imgs/ps-06-populated-pcb.jpg" alt="Populated power supply PCB, top-down view">
+
+    <p id="gridHint" class="reveal-hint" style="display:none;">Click any photo below for the full story →</p>
+    <div class="grid9" id="grid9"></div>
+    <p id="codeLink" style="display:none; margin:0 0 56px;"><a href="../files/linear-bench-power-supply-calculations.pdf" target="_blank" style="font-family:var(--mono); font-size:13px; color:var(--red); text-decoration:none; border-bottom:1px solid var(--red-dim);">View the full calculations & design notes (.pdf) →</a></p>
+
+    <div class="writeup">
+      <div class="step">
+        <div class="step-h"><span class="n">01</span><h4>Calculations & Part Selection</h4></div>
+        <p>I worked backward from the target specs — 0–15 V output, up to 1.2 A, and ripple under 50 mV — through the rectifier, filter, and regulation stages to size the components. This meant selecting a transformer secondary with enough voltage for dropout and ripple margin, a bridge rectifier rated above the load current, and a 2200 µF filter capacitor sized to meet the ripple target. I simulated the rectifier and filter stage in LTspice to confirm the ripple shape before finalizing the components. The full math is in the linked PDF below.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">02</span><h4>LTspice Simulation — Full Circuit & Protection</h4></div>
+        <p>After validating the rectifier and filter, I simulated the complete circuit in LTspice, including the regulation stage, both pass transistors, current limiting, and relay protection. With the potentiometer turned fully clockwise, the simulated output held at 15 V, matching the calculations. I also tested the protection circuit separately, confirming that the current-limiting stage capped the output current in the 0.1–1 A range and that the relay would cut power under a fault condition.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">03</span><h4>Final KiCad Schematic</h4></div>
+        <p>Once the LTspice simulation matched the calculations, I rebuilt the circuit as a full KiCad schematic. I added the front-panel connections for the banana jacks, power switch, fuse, and status LED, along with the L7805 for auxiliary low-voltage needs. I then simulated the circuit again in KiCad to make sure the design behaved as expected before moving to PCB layout.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">04</span><h4>PCB Layout</h4></div>
+        <p>I then moved the component footprints onto the PCB and routed the 2-layer layout. I kept the high-current path from the bridge rectifier through the filter capacitor and pass transistors wide enough for 1.2 A. I also placed the front-panel connectors (J1, J2, SW1, SW3) along the board edges so they would line up with their positions in the enclosure.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">05</span><h4>Fabricated PCB</h4></div>
+        <p>The fabricated board came back matching the KiCad layout, with silkscreen labels for each component reference (F1, D1, C1, U1, K1, and the rest) placed to match the schematic before any components went on.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">06</span><h4>Enclosure Design — Mounting Plates</h4></div>
+        <p>I used aluminum plates to mount the heatsink and transformer directly, surrounded by a wood frame for the rest of the housing — aluminum where I needed heat dissipation and rigid mounting, and wood everywhere else for ease of building.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">07</span><h4>Front & Back Panel Assembly</h4></div>
+        <p>On the front panel I mounted the switches and output potentiometer where they would be accessible during use. On the back panel, the IEC power cord's switch wiring connects directly to the transformer, keeping the AC input wiring toward the back of the enclosure and away from the front controls.</p>
+      </div>
+      <div class="step">
+        <div class="step-h"><span class="n">08</span><h4>Soldering & Waiting on Parts</h4></div>
+        <p>I hand-soldered the components I had available onto the board. I'm currently waiting on the rest of the parts to arrive before finishing the remaining soldering and powering it up for testing.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<button class="flip-close" id="flipClose">✕ CLOSE</button>
+<div class="flip-overlay" id="flipOverlay">
+  <div class="flip-card" id="flipCard">
+    <div class="flip-inner" id="flipInner">
+      <div class="flip-face flip-front">
+        <span class="flip-tag" id="flipTagFront">01</span>
+        <img id="flipImg" src="" alt="">
+        <span class="flip-instruction">CLICK TO SEE WHAT I DID →</span>
+      </div>
+      <div class="flip-face flip-back">
+        <span class="n" id="flipTagBack">STEP 01</span>
+        <h4 id="flipTitle"></h4>
+        <p id="flipDesc"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>© 2026 Larry Nguyen</span>
+  <span>University of Maryland — Electrical Engineering</span>
+</footer>
+
+<script src="../js/main.js"></script>
+<script>
+  const psSteps = [
+    {n:'01', img:'../imgs/ps-01-rectifier-sim.jpg', alt:'LTspice bridge rectifier and filter simulation showing output ripple', title:'Calculations & Part Selection',
+     desc:"I worked backward from the target specs \u2014 0\u201315 V output, up to 1.2 A, and ripple under 50 mV \u2014 through the rectifier, filter, and regulation stages to size the components. This meant selecting a transformer secondary with enough voltage for dropout and ripple margin, a bridge rectifier rated above the load current, and a 2200 \u00b5F filter capacitor sized to meet the ripple target. I simulated the rectifier and filter stage in LTspice to confirm the ripple shape before finalizing the components. The full math is in the linked PDF below."},
+    {n:'02', img:'../imgs/ps-04-final-ltspice.jpg', alt:'Final LTspice schematic with pass transistors and protection circuit added', title:'LTspice Simulation — Full Circuit & Protection',
+     desc:"After validating the rectifier and filter, I simulated the complete circuit in LTspice, including the regulation stage, both pass transistors, current limiting, and relay protection. With the potentiometer turned fully clockwise, the simulated output held at 15 V, matching the calculations. I also tested the protection circuit separately, confirming that the current-limiting stage capped the output current in the 0.1\u20131 A range and that the relay would cut power under a fault condition."},
+    {n:'03', img:'../imgs/ps-05-kicad-schematic.jpg', alt:'Final KiCad schematic with front panel connectors and protection circuit', title:'Final KiCad Schematic',
+     desc:"Once the LTspice simulation matched the calculations, I rebuilt the circuit as a full KiCad schematic. I added the front-panel connections for the banana jacks, power switch, fuse, and status LED, along with the L7805 for auxiliary low-voltage needs. I then simulated the circuit again in KiCad to make sure the design behaved as expected before moving to PCB layout."},
+    {n:'04', img:'../imgs/ps-05b-pcb-layout.jpg', alt:'KiCad PCB layout showing routed traces', title:'PCB Layout',
+     desc:"I then moved the component footprints onto the PCB and routed the 2-layer layout. I kept the high-current path from the bridge rectifier through the filter capacitor and pass transistors wide enough for 1.2 A. I also placed the front-panel connectors (J1, J2, SW1, SW3) along the board edges so they would line up with their positions in the enclosure."},
+    {n:'05', img:'../imgs/ps-03b-bare-pcb.jpg', alt:'Bare fabricated PCB before any components are soldered', title:'Fabricated PCB',
+     desc:"The fabricated board came back matching the KiCad layout, with silkscreen labels for each component reference (F1, D1, C1, U1, K1, and the rest) placed to match the schematic before any components went on."},
+    {n:'06', img:'../imgs/ps-08-heatsink-transformer.jpg', alt:'Aluminum mounting plate with heatsink and transformer', title:'Enclosure Design — Mounting Plates',
+     desc:"I used aluminum plates to mount the heatsink and transformer directly, surrounded by a wood frame for the rest of the housing \u2014 aluminum where I needed heat dissipation and rigid mounting, and wood everywhere else for ease of building."},
+    {n:'07', img:'../imgs/ps-09-bench-wiring.jpg', alt:'Front and back panel assembly \u2014 placeholder photo, to be replaced', title:'Front & Back Panel Assembly',
+     desc:"On the front panel I mounted the switches and output potentiometer where they would be accessible during use. On the back panel, the IEC power cord's switch wiring connects directly to the transformer, keeping the AC input wiring toward the back of the enclosure and away from the front controls."},
+    {n:'08', img:'../imgs/ps-06-populated-pcb.jpg', alt:'Power supply PCB with components soldered on so far', title:'Soldering & Waiting on Parts', zoomable:true,
+     desc:"I hand-soldered the components I had available onto the board. I'm currently waiting on the rest of the parts to arrive before finishing the remaining soldering and powering it up for testing."},
+  ];
+  initFlipGallery(psSteps);
+</script>
+</body>
+</html>
